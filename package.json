@@ -1,5 +1,5 @@
 {
-  "name": "buddypress-admin-only-profile-fields",
+  "name": "buddypress-admin-global-profile-fields",
   "version": "0.1.0",
   "devDependencies": {
     "grunt": "^0.4.5",

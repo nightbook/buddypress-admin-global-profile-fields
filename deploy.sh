@@ -3,9 +3,9 @@
 # The difference is that this script lives in the plugin's git repo & doesn't require an existing SVN repo.
 
 # main config
-PLUGINSLUG="buddypress-admin-only-profile-fields"
+PLUGINSLUG="buddypress-admin-global-profile-fields"
 CURRENTDIR=`pwd`
-MAINFILE="bp-admin-only-profile-fields.php" # this should be the name of your main php file in the wordpress plugin
+MAINFILE="bp-admin-global-profile-fields.php" # this should be the name of your main php file in the wordpress plugin
 
 # git config
 GITPATH="$CURRENTDIR/" # this file should be in the base of your git repository

@@ -19,13 +19,13 @@ module.exports = function(grunt) {
 		pot: {
 			build: {
 				options: {
-					text_domain: 'bp_admin_only_profile_fields',
-					dest: 'languages/bp_admin_only_profile_fields.pot',
+					text_domain: 'bp_admin_global_profile_fields',
+					dest: 'languages/bp_admin_global_profile_fields.pot',
 					keywords: pot_keywords,
 					encoding: 'UTF-8',
-					package_name: 'buddypress-admin-only-profile-fields',
+					package_name: 'buddypress-admin-global-profile-fields',
 					package_version: '',
-					msgid_bugs_address: 'hello@ashleyrich.com',
+					msgid_bugs_address: 'nightbook.g.hyder@gmail.com',
 					comment_tag: 'translators:'
 				},
 				files: [{
