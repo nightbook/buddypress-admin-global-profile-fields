@@ -1,43 +1,34 @@
-=== BuddyPress Admin Only Profile Fields ===
-Contributors: A5hleyRich, garrett-eclipse
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6KBW2ZSVZ8RE
-Tags: buddypress, admin, hidden, profile, field, visibility
+=== BuddyPress Admin Global Profile Fields ===
+Contributors: nightbook
+Tags: buddypress, admin, global, profile, field
 Requires at least: 4.1.1
 Tested up to: 4.1.1
-Stable tag: 1.2
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Easily set the visibility of BuddyPress profile fields to hidden, allowing only admin users to edit and view them.
+Introduce global BuddyPress profiles fields, allowing only admin users to edit and and allow all users to view them.
 
 == Description ==
 
-Easily set the visibility of BuddyPress profile fields to hidden, allowing only admin users to edit and view them.
+Introduce global BuddyPress profiles fields, allowing only admin users to edit and and allow all users to view them.
 
 **GitHub**
 
-If you would like to contribute to the plugin, you can do so on [GitHub](https://github.com/A5hleyRich/BuddyPress-Admin-Only-Profile-Fields).
+If you would like to contribute to the plugin, you can do so on [GitHub](https://github.com/nightbook/buddypress-admin-global-profile-fields).
 
 == Installation ==
 
-1. Upload `bp-admin-only-profile-fields` to the `/wp-content/plugins/` directory.
+1. Upload `buddypress-admin-global-profile-fields` to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 
 == Frequently Asked Questions ==
 
-= How do I hide a profile field? =
+= How do I create an admin global profile field? =
 
-In the WordPress admin area, go to *Users > Profile Fields* and click *Edit* on the desired profile field. Under the *Default Visibility* panel select *Hidden* as the value and click *Save*.
+In the WordPress admin area, go to *Users > Profile Fields* and click *Add New Field* to create a new field or *Edit* on the desired profile field. Under the *Default Visibility* panel select *Global* as the value. In the *Value* field enter the global value for the field and click *Save*.
 
-The profile field is now hidden from all users except Administrators.
-
-= How do I change who can view and edit the hidden field? =
-
-Add the following filter to your theme’s functions.php file, substituting *edit_others_posts* with the desired capability:
-`function custom_profile_fields_visibility() {
-	return 'edit_others_posts'; // Editors
-}
-add_filter( 'bp_admin_only_profile_fields_cap', 'custom_profile_fields_visibility' );`
+The profile field is now global from all users and only editable by Administrators.
 
 == Screenshots ==
 
@@ -45,42 +36,11 @@ add_filter( 'bp_admin_only_profile_fields_cap', 'custom_profile_fields_visibilit
 
 == Changelog ==
 
-= 1.2 =
-
-* Added Admin-Editable Field Visibility Level
-* Added Admin-Internal Field Visibility Level
-* Removed Admin (Hidden) Visibility Levels from Front-End Profile
-* Fix issue with js to support Buddypress change of admin visibility setting from checkboxes to selects
-* Fix issue with js where visibility settings dissappears from Admin when Hidden selected
-* Fix issue breaking standard Buddypress Visibility options
-
-= 1.1.1 =
-
-* Fix fatal error on activation
-* Adhere to WordPress coding standards
-
-= 1.1 =
-
-* Hide the _Per-Member Visibility_ options when the _Default Visibility_ is set to _Hidden_
-
 = 1.0 =
 
 * Initial release
 
 == Upgrade Notice ==
-
-= 1.2 =
-
-* Buddypress Compatibility Fix
-* Addition of Admin-Editable Visibility Field Option
-
-= 1.1.1 =
-
-* Bug fixes
-
-= 1.1 =
-
-* General improvements
 
 = 1.0 =
 
