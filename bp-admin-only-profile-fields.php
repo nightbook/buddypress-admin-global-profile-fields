@@ -1,14 +1,13 @@
 <?php
 /*
-Plugin Name: BuddyPress Admin Only Profile Fields
-Description: Easily set the visibility of BuddyPress profile fields to hidden, allowing only admin users to edit and view them.
-Version: 1.2
-Author: Ashley Rich
-Contributors: Garrett Hyder
-Author URI: http://ashleyrich.com
+Plugin Name: BuddyPress Admin Global Profile Fields
+Description: Introduce global BuddyPress profiles fields, allowing only admin users to edit and and allow all users to view them.
+Version: 1.0
+Author: Garrett Hyder
+Author URI: http://nightbook.ca
 License: GPL2
 
-Copyright 2013  Ashley Rich (email : hello@ashleyrich.com)
+Copyright 2015  Garrett Hyder (email : nightbook.g.hyder@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -30,12 +29,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * BuddyPress Admin Only Profile Fields
+ * BuddyPress Admin Global Profile Fields
  *
- * @package  BuddyPress Admin Only Profile Fields
+ * @package  BuddyPress Admin Global Profile Fields
  * @since    1.0
  */
-class BP_Admin_Only_Profile_Fields {
+class BP_Admin_Global_Profile_Fields {
 
 	/**
 	 * Instance of this class.
@@ -59,11 +58,15 @@ class BP_Admin_Only_Profile_Fields {
 
 		// Actions
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'xprofile_field_before_contentbox', array( $this, 'bp_xprofile_global_field_value' ) );
+		add_action( 'xprofile_fields_saved_field', array( $this, 'bp_xprofile_save_global_field_value' ) );
+		add_action( 'bp_get_the_profile_field_value', array( $this, 'bp_get_global_profile_field_value' ), 5, 3 );
 
 		// Filters
-		add_filter( 'bp_xprofile_get_visibility_levels', array( $this, 'custom_visibility_levels' ) );
-		add_filter ( 'bp_xprofile_get_hidden_field_types_for_user', array( $this, 'append_hidden_level' ), 10, 3 );
-		add_filter ( 'bp_profile_get_visibility_radio_buttons', array( $this, 'filter_hidden_visibility_from_radio_buttons' ), 10, 3);
+		add_filter( 'bp_xprofile_get_visibility_levels', array( $this, 'global_visibility_level' ) );
+		add_filter( 'bp_xprofile_get_hidden_field_types_for_user', array( $this, 'append_global_visibility_level' ), 10, 3 );
+		add_filter( 'bp_profile_get_visibility_radio_buttons', array( $this, 'filter_global_visibility_from_radio_buttons' ), 10, 3);
+
 	}
 
 	/**
@@ -71,7 +74,7 @@ class BP_Admin_Only_Profile_Fields {
 	 *
 	 * @since  1.0
 	 *
-	 * @return BP_Admin_Only_Profile_Fields
+	 * @return BP_Admin_Global_Profile_Fields
 	 */
 	public static function get_instance() {
 
@@ -81,6 +84,7 @@ class BP_Admin_Only_Profile_Fields {
 		}
 
 		return self::$instance;
+
 	}
 
 	/**
@@ -90,17 +94,18 @@ class BP_Admin_Only_Profile_Fields {
 	 */
 	private function setup_constants() {
 
-		if ( ! defined( 'BPAOPF_VERSION' ) ) {
-			define( 'BPAOPF_VERSION', '1.2' );
+		if ( ! defined( 'BPAGPF_VERSION' ) ) {
+			define( 'BPAGPF_VERSION', '1.0' );
 		}
 
-		if ( ! defined( 'BPAOPF_PLUGIN_URL' ) ) {
-			define( 'BPAOPF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+		if ( ! defined( 'BPAGPF_PLUGIN_URL' ) ) {
+			define( 'BPAGPF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 		}
 
-		if ( ! defined( 'BPAOPF_PLUGIN_DIR' ) ) {
-			define( 'BPAOPF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+		if ( ! defined( 'BPAGPF_PLUGIN_DIR' ) ) {
+			define( 'BPAGPF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 		}
+
 	}
 
 	/**
@@ -110,117 +115,155 @@ class BP_Admin_Only_Profile_Fields {
 	 */
 	private function load_plugin_textdomain() {
 
-		load_plugin_textdomain( 'bp_admin_only_profile_fields', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		load_plugin_textdomain( 'bp_admin_global_profile_fields', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+
 	}
 
 	/**
 	 * Enqueue admin scripts.
 	 *
-	 * @since  1.1
+	 * @since  1.0
 	 */
 	public function enqueue_scripts() {
 
 		$min     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		$src     = plugins_url( 'js/script' . $min . '.js', __FILE__ );
-		$version = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : BPAOPF_VERSION;
+		$jssrc   = plugins_url( 'js/script' . $min . '.js', __FILE__ );
+		$csssrc  = plugins_url( 'css/style' . $min . '.css', __FILE__ );
+		$version = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : BPAGPF_VERSION;
 
-		wp_register_script( 'bp_admin_only_profile_fields', $src, array( 'jquery' ), $version, true );
+		wp_register_script( 'bp_admin_global_profile_fields', $jssrc, array( 'jquery' ), $version, true );
+        wp_register_style( 'bp_admin_global_profile_fields', $csssrc, false, $version );
 
 		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'bp-profile-setup' ) ) {
-			wp_enqueue_script( 'bp_admin_only_profile_fields' );
+			wp_enqueue_script( 'bp_admin_global_profile_fields' );
+	        wp_enqueue_style( 'bp_admin_global_profile_fields' );
 		}
+
 	}
 
 	/**
-	 * Add our hidden visibility level.
+	 * Output the metabox for setting the field value on admin global fields.
+	 *
+	 * @since 1.0
+	 *
+	 * @param object 	$field
+	 *
+	 * @return void If default field
+	 */
+	private function value_metabox( $field ) {
+
+		// Default field cannot change type.
+		if ( ! empty( $field->id ) && 1 === (int) $field->id ) {
+			return;
+		} ?>
+
+		<div class="postbox" style="display:none;">
+			<h3><label for="fieldvalue"><?php esc_html_e( 'Value', 'bp_admin_global_profile_fields'); ?></label></h3>
+			<div class="inside">
+				<?php $field->type_obj->admin_field_html( array( 'name' => 'fieldvalue', 'id' => 'fieldvalue', 'value' => bp_xprofile_get_meta( $field->id, 'field', 'value' ) ) ); ?>
+				<small id="type-change-notice" style="display:none;">Note: The Field Type has changed, save the field and re-edit to render the Value field appropriately.</small>
+			</div>
+		</div>
+
+	<?php		
+	}
+
+	/**
+	 * Add the global fields value input to the xprofile edit screen.
 	 *
 	 * @since  1.0
 	 *
-	 * @param array $levels
-	 *
-	 * @return array
+	 * @param object 	$field
 	 */
-	public function custom_visibility_levels( $levels ) {
+	public function bp_xprofile_global_field_value( $field ) {
 
-		$levels['hidden'] = array(
-			'id'    => 'hidden',
-			'label' => __( 'Hidden', 'bp_admin_only_profile_fields' )
-		);
-		$levels['internal'] = array(
-			'id'    => 'internal',
-			'label' => __( 'Admin Internal', 'bp_admin_only_profile_fields' )
-		);
-		$levels['adminedit'] = array(
-			'id'    => 'adminedit',
-			'label' => __( 'Admin Editable', 'bp_admin_only_profile_fields' )
-		);
+		// Output the field value metabox.
+		$this->value_metabox( $field );
 
-
-		return $levels;
 	}
 
 	/**
-	 * Append 'hidden' to the visibility levels for this user pair.
+	 * Save the global field value.
 	 *
-	 * @since  1.2
+	 * @since  1.0
 	 *
-	 * @param array $hidden_levels
-	 * @param int   $displayed_user_id
-	 * @param int   $current_user_id
+	 * @param object 	$field
+	 */
+	public function bp_xprofile_save_global_field_value( $field ) {
+
+		if ( ! empty( $_POST['saveField'] ) ) {
+
+			if ( BP_XProfile_Field::admin_validate() ) {
+
+				$field_id = $field->id;
+				if ( empty( $field_id ) ) {
+					$field_id = BP_XProfile_Field::get_id_from_name( $field->name );
+				}
+
+				$this->__update_xprofile_meta( $field_id, 'field', 'value', $_POST['fieldvalue'] );
+			
+			}
+
+		}
+
+	}
+
+	/**
+	 * Add our global visibility level.
+	 *
+	 * @since  1.0
+	 *
+	 * @param array 	$levels
 	 *
 	 * @return array
 	 */
-	public function append_hidden_level( $hidden_levels, $displayed_user_id, $current_user_id ) {
+	public function global_visibility_level( $levels ) {
 
-		if ( ! current_user_can( apply_filters( 'bp_admin_only_profile_fields_cap', 'manage_options' ) ) ) {
+		$levels['global'] = array(
+			'id'    => 'global',
+			'label' => __( 'Global', 'bp_admin_global_profile_fields' )
+		);
 
-			// Current user is non-admin
-			$hidden_levels[] = 'hidden';
+		return $levels;
 
-			if ( empty( $current_user_id ) ) {
+	}
 
-				// Current user is not logged in
-				$hidden_levels[] = 'internal';
+	/**
+	 * Append 'global' to the visibility levels for all users.
+	 *
+	 * @since  1.0
+	 *
+	 * @param array 	$hidden_levels
+	 * @param int   	$displayed_user_id
+	 * @param int   	$current_user_id
+	 *
+	 * @return array
+	 */
+	public function append_global_visibility_level( $hidden_levels, $displayed_user_id, $current_user_id ) {
 
-			} else {
+		if ( bp_is_user_profile_edit() ) {
 
-				if ( $displayed_user_id != $current_user_id ) {
-
-					// Not viewing own profile
-					$hidden_levels[] = 'internal';
-
-				} else {
-
-					if ( bp_is_profile_edit() ) {
-
-						// Editing profile
-						$hidden_levels[] = 'internal';
-						$hidden_levels[] = 'adminedit';
-
-					}
-
-				}
-
-			}
-
+			// Editing profile
+			$hidden_levels[] = 'global';
 
 		}
 
 		return $hidden_levels;
+
 	}
 
 	/**
-	 * Filter 'hidden' visibility levels from radio buttons.
+	 * Filter 'global' visibility levels from radio buttons.
 	 *
-	 * @since  1.2
+	 * @since  1.0
 	 *
-	 * @param string $retval
-	 * @param array   $request
-	 * @param array   $args
+	 * @param string 	$retval
+	 * @param array   	$request
+	 * @param array   	$args
 	 *
 	 * @return array
 	 */
-	public function filter_hidden_visibility_from_radio_buttons( $retval, $r, $args ) {
+	public function filter_global_visibility_from_radio_buttons( $retval, $r, $args ) {
 
 		// Empty return value, filled in below if a valid field ID is found
 		$retval = '';
@@ -238,7 +281,7 @@ class BP_Admin_Only_Profile_Fields {
 
 				<?php foreach( bp_xprofile_get_visibility_levels() as $level ) : ?>
 
-					<?php if ( ! in_array( $level['id'], array( 'hidden', 'internal', 'adminedit' ) ) ) : ?>
+					<?php if ( $level['id'] != 'global' ) : ?>
 
 						<?php printf( $r['before_radio'], esc_attr( $level['id'] ) ); ?>
 
@@ -264,8 +307,53 @@ class BP_Admin_Only_Profile_Fields {
 		endif;
 
 		return $retval;
+
 	}
+
+	/**
+	 * Render the global value on the public interface.
+	 *
+	 * @since  1.0
+	 *
+	 * @param string 	$value
+	 * @param string   	$type
+	 * @param int   	$field_id
+	 *
+	 * @return string
+	 */
+	public function bp_get_global_profile_field_value( $value, $type, $field_id ) {
+
+		if (xprofile_get_field_visibility_level($field_id) == 'global') {
+			
+			return bp_xprofile_get_meta( $field_id, 'field', 'value' );
+		
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Helper function for handling xProfile Meta
+	 *
+	 * @since  1.0
+	 *
+	 * @param int 		$object_id
+	 * @param string   	$object_type
+	 * @param string   	$meta_key
+	 * @param string   	$meta_value
+	 *
+	 */
+    private function __update_xprofile_meta( $object_id, $object_type, $meta_key, $meta_value = '' ) {
+        if ( empty( $meta_value ) || ! $meta_value ) {
+            bp_xprofile_delete_meta( $object_id, $object_type, $meta_key );
+        } elseif ( ! bp_xprofile_get_meta( $object_id, $object_type, $meta_key ) ) {
+            bp_xprofile_add_meta( $object_id, $object_type, $meta_key, $meta_value );
+        } else {
+            bp_xprofile_update_meta( $object_id, $object_type, $meta_key, $meta_value );
+        }
+    }
 
 }
 
-$bp_admin_only_profile_fields = BP_Admin_Only_Profile_Fields::get_instance();
+$bp_admin_global_profile_fields = BP_Admin_Global_Profile_Fields::get_instance();
