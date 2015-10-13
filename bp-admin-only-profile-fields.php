@@ -160,7 +160,7 @@ class BP_Admin_Global_Profile_Fields {
 		<div class="postbox" style="display:none;">
 			<h3><label for="fieldvalue"><?php esc_html_e( 'Value', 'bp_admin_global_profile_fields'); ?></label></h3>
 			<div class="inside">
-				<?php $field->type_obj->admin_field_html( array( 'name' => 'fieldvalue', 'id' => 'fieldvalue', 'value' => bp_xprofile_get_meta( $field->id, 'field', 'value' ) ) ); ?>
+				<?php $field->type_obj->admin_field_html( array( 'name' => 'fieldvalue', 'id' => 'fieldvalue', 'value' => bp_xprofile_get_meta( $field->id, 'field', 'global_value' ) ) ); ?>
 				<small id="type-change-notice" style="display:none;">Note: The Field Type has changed, save the field and re-edit to render the Value field appropriately.</small>
 			</div>
 		</div>
@@ -200,7 +200,7 @@ class BP_Admin_Global_Profile_Fields {
 					$field_id = BP_XProfile_Field::get_id_from_name( $field->name );
 				}
 
-				$this->__update_xprofile_meta( $field_id, 'field', 'value', $_POST['fieldvalue'] );
+				$this->__update_xprofile_meta( $field_id, 'field', 'global_value', $_POST['fieldvalue'] );
 			
 			}
 
@@ -323,9 +323,9 @@ class BP_Admin_Global_Profile_Fields {
 	 */
 	public function bp_get_global_profile_field_value( $value, $type, $field_id ) {
 
-		if (xprofile_get_field_visibility_level($field_id) == 'global') {
+		if (xprofile_get_field_visibility_level($field_id, bp_displayed_user_id()) == 'global') {
 			
-			return bp_xprofile_get_meta( $field_id, 'field', 'value' );
+			return bp_xprofile_get_meta( $field_id, 'field', 'global_value' );
 		
 		}
 
