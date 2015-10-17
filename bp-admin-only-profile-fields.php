@@ -60,12 +60,13 @@ class BP_Admin_Global_Profile_Fields {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'xprofile_field_before_contentbox', array( $this, 'bp_xprofile_global_field_value' ) );
 		add_action( 'xprofile_fields_saved_field', array( $this, 'bp_xprofile_save_global_field_value' ) );
-		add_action( 'bp_get_the_profile_field_value', array( $this, 'bp_get_global_profile_field_value' ), 5, 3 );
+		add_action( 'bp_profile_field_item', array( $this, 'display_global_profile_fields' ) );
 
 		// Filters
 		add_filter( 'bp_xprofile_get_visibility_levels', array( $this, 'global_visibility_level' ) );
 		add_filter( 'bp_xprofile_get_hidden_field_types_for_user', array( $this, 'append_global_visibility_level' ), 10, 3 );
-		add_filter( 'bp_profile_get_visibility_radio_buttons', array( $this, 'filter_global_visibility_from_radio_buttons' ), 10, 3);
+		add_filter( 'bp_profile_get_visibility_radio_buttons', array( $this, 'filter_global_visibility_from_radio_buttons' ), 10, 3 );
+		add_filter( 'bp_after_has_profile_parse_args', array( $this, 'show_global_fields' ) );
 
 	}
 
@@ -311,25 +312,59 @@ class BP_Admin_Global_Profile_Fields {
 	}
 
 	/**
-	 * Render the global value on the public interface.
+	 * Display the global fields on the users public profile.
 	 *
 	 * @since  1.0
 	 *
-	 * @param string 	$value
-	 * @param string   	$type
-	 * @param int   	$field_id
-	 *
-	 * @return string
 	 */
-	public function bp_get_global_profile_field_value( $value, $type, $field_id ) {
+	public function display_global_profile_fields() {
 
-		if (xprofile_get_field_visibility_level($field_id, bp_displayed_user_id()) == 'global') {
-			
-			return bp_xprofile_get_meta( $field_id, 'field', 'global_value' );
-		
+		global $profile_template;
+
+		$this->write_log($profile_template);
+
+		if ($profile_template->field->visibility_level == 'global') {
+
+			$this->write_log($profile_template->field->visibility_level);
+
+			$global_field_value = bp_xprofile_get_meta( $profile_template->field->id, 'field', 'global_value' );
+
+			if ( ! empty( $global_field_value ) || ( '0' === $global_field_value ) ) {
+				$value = maybe_unserialize( $global_field_value );
+			} else {
+				$value = false;
+			}
+
+			if ( ! empty( $value ) || ( '0' === $value ) ) { ?>
+
+				<tr<?php bp_field_css_class(); ?>>
+
+					<td class="label"><?php bp_the_profile_field_name(); ?></td>
+
+					<td class="data"><?php echo $value; ?></td>
+
+				</tr>
+
+			<?php }
+
 		}
+									
+	}
 
-		return $value;
+	/**
+	 * Update has_profile args to not filter the empty fields
+	 *
+	 * @since  1.0
+	 *
+	 * @param array 	$r
+	 *
+	 * @return array
+	 */
+	public function show_global_fields( $r ) {
+
+		$r['hide_empty_fields'] = false;
+
+		return $r;
 
 	}
 
@@ -354,6 +389,15 @@ class BP_Admin_Global_Profile_Fields {
         }
     }
 
+    private function write_log ( $log )  {
+        if ( true === WP_DEBUG ) {
+            if ( is_array( $log ) || is_object( $log ) ) {
+                error_log( print_r( $log, true ) );
+            } else {
+                error_log( $log );
+            }
+        }
+    }
 }
 
 $bp_admin_global_profile_fields = BP_Admin_Global_Profile_Fields::get_instance();
